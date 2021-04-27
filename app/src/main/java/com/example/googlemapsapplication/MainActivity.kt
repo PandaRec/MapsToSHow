@@ -11,10 +11,10 @@ import com.example.googlemapsapplication.pojo.Place
 import com.example.googlemapsapplication.pojo.Result
 
 class MainActivity : AppCompatActivity() {
-    lateinit var imageView:ImageView
-    lateinit var textViewTitle: TextView
-    lateinit var textViewAddress: TextView
-    lateinit var textViewDescription: TextView
+    private lateinit var imageView:ImageView
+    private lateinit var textViewTitle: TextView
+    private lateinit var textViewAddress: TextView
+    private lateinit var textViewDescription: TextView
     private var place:Result?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

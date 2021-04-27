@@ -8,6 +8,7 @@ import com.example.googlemapsapplication.MainActivity
 import com.example.googlemapsapplication.R
 import com.example.googlemapsapplication.pojo.Place
 import com.example.googlemapsapplication.pojo.Result
+import com.example.googlemapsapplication.presenters.MapPresenter
 import com.example.googlemapsapplication.usecases.PlaceUseCase
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -24,6 +25,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var placeUseCase:PlaceUseCase
     private var place:Place?=null
+    private lateinit var mapPresenter: MapPresenter
     private val compositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,11 +36,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         placeUseCase = PlaceUseCase()
-//        val disp = placeUseCase.getPlaces().subscribe {
-//            place = it
-//        }
-        //compositeDisposable.add(disp)
-
+        mapPresenter = MapPresenter()
 
     }
 
@@ -58,45 +56,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val disp = placeUseCase.getPlaces().subscribe {
             place = it
-            insertMarkers(mMap,place)
+            mapPresenter.insertMarkers(mMap,place)
         }
+        compositeDisposable.addAll(disp)
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(msk))
         mMap.setOnMarkerClickListener { p0 ->
             Log.d("TAG", p0?.title.toString())
-            val res = findCurrentPlace(place,p0.title)
+            val res = mapPresenter.findCurrentPlace(place,p0.title)
             goToDetails(res)
-//            val intent = Intent(this,MapsActivity::class.java)
-//            intent.putExtra("place",res)
-//            startActivity(intent)
             true
         }
 
     }
 
-    fun insertMarkers(googleMap: GoogleMap,place: Place?){
-        Log.d("TAG","not")
-        if(place==null) return
-        for(pl in place.results){
-            val coords = pl.coords?.let { LatLng(it.lat,it.lon) }
-            val title = pl.title
-            val point = coords?.let { MarkerOptions().position(it).title(title) }
-            googleMap.addMarker(point)
-            Log.d("TAG","added marker")
-        }
-    }
-
-    fun findCurrentPlace(place: Place?,markerTitle:String): Result?{
-        if (place==null) return null
-        var result:Result?=null
-        for(pl in place.results){
-            if(pl.title.equals(markerTitle)){
-                result = pl
-            }
-        }
-        return result
-    }
-    fun goToDetails(place:Result?){
+    private fun goToDetails(place:Result?){
         if(place==null) return
         val intent = Intent(this@MapsActivity,MainActivity::class.java)
         intent.putExtra("place",place)
